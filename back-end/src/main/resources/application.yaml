@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: 'jdbc:postgresql://localhost:5432/review_app_db'
+    username: postgres
+    password: mduck
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type: TRACE
+        type.desciptor.sql.BasicBinder: TRACE
