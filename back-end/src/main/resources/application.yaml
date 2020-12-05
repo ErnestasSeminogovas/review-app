@@ -5,7 +5,7 @@ spring:
     password: mduck
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
@@ -17,3 +17,10 @@ logging:
         SQL: DEBUG
         type: TRACE
         type.desciptor.sql.BasicBinder: TRACE
+token:
+  access:
+    salt: 'access-salt'
+    duration: 30000 # 30s
+  refresh:
+    salt: 'refresh-salt'
+    duration: 2592000000 # 30 days

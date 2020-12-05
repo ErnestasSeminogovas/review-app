@@ -2,10 +2,12 @@ package lt.reviewapp.services.user;
 
 import lt.reviewapp.configs.controller.exceptions.BadRequestException;
 import lt.reviewapp.entities.User;
+import lt.reviewapp.models.auth.RegisterRequest;
 import lt.reviewapp.models.user.UserDto;
 import lt.reviewapp.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
@@ -17,11 +19,13 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -42,12 +46,11 @@ public class UserServiceImpl implements UserService {
     public void updateById(Integer id, UserDto userDto) {
         User user = userRepository.findById(id).orElseThrow(() -> createEntityNotFoundException(id));
 
-        if (!user.getUsername().equals(userDto.getUsername()) && userRepository.existsByUsername(userDto.getUsername())) {
-            throw new BadRequestException("Username already exists: " + userDto.getUsername());
-        }
-
-        if (!user.getUsername().equals(userDto.getUsername()) && userRepository.existsByUsername(userDto.getUsername())) {
-            throw new BadRequestException("Username already exists: " + userDto.getUsername());
+        boolean usernameOrEmailChanged =
+                !user.getUsername().equals(userDto.getUsername()) || !user.getEmail().equals(userDto.getEmail());
+        if (usernameOrEmailChanged && userRepository.existsByUsernameOrEmail(userDto.getUsername(),
+                userDto.getEmail())) {
+            throw new BadRequestException("User already exists with this username or email.");
         }
 
         user.setUsername(userDto.getUsername());
@@ -63,6 +66,20 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsByUsernameOrEmail(String username, String email) {
+        return userRepository.existsByUsernameOrEmail(username, email);
+    }
+
+    // TODO: add roles here
+    @Override
+    public Integer create(RegisterRequest registerRequest) {
+        User user =
+                User.builder().username(registerRequest.getUsername()).email(registerRequest.getEmail()).password(passwordEncoder.encode(registerRequest.getPassword())).build();
+
+        return userRepository.save(user).getId();
     }
 
     private EntityNotFoundException createEntityNotFoundException(Integer id) {

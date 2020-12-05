@@ -27,7 +27,7 @@ public class TagController {
         return ResponseEntity.ok(tagService.findAll());
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<TagDto> findById(@PathVariable Integer id) {
         return ResponseEntity.ok(tagService.findById(id));
     }
@@ -42,12 +42,12 @@ public class TagController {
         return ResponseEntity.created(location).build();
     }
 
-    @PutMapping(value = "/{id}")
+    @PutMapping("/{id}")
     public void updateById(@PathVariable Integer id, @RequestBody @Valid TagRequest tagRequest) {
         tagService.updateById(id, tagRequest);
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping("/{id}")
     public void deleteById(@PathVariable Integer id) {
         tagService.deleteById(id);
     }

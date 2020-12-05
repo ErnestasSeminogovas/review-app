@@ -24,17 +24,17 @@ public class UserController {
         return ResponseEntity.ok(userService.findAll());
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<UserDto> findById(@PathVariable Integer id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
-    @PutMapping(value = "/{id}")
+    @PutMapping("/{id}")
     public void updateById(@PathVariable Integer id, @RequestBody @Valid UserDto userDto) {
         userService.updateById(id, userDto);
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping("/{id}")
     public void deleteById(@PathVariable Integer id) {
         userService.deleteById(id);
     }
