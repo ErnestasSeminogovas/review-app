@@ -43,11 +43,6 @@ public class WebSecurityConfigurerAdapterImpl extends WebSecurityConfigurerAdapt
     }
 
     @Bean
-    public TokenFilter tokenFilter(TokenProvider tokenProvider, UserDetailsService userDetailsService) {
-        return new TokenFilter(tokenProvider, userDetailsService);
-    }
-
-    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -61,24 +56,21 @@ public class WebSecurityConfigurerAdapterImpl extends WebSecurityConfigurerAdapt
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .cors()
-                .and()
-                .csrf()
-                .disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/api/auth/**")
-                .permitAll()
-                .antMatchers(HttpMethod.GET, "/api/tags", "/api/tags/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
-                .and().exceptionHandling().authenticationEntryPoint(authenticationEntryPoint());
+                .cors().and().csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and().authorizeRequests().antMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/tags", "/api/tags/**").permitAll()
+                .anyRequest().authenticated()
+                .and().exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+                .and().addFilter(tokenFilter(tokenProvider, userDetailsService(userRepository)));
 
         http.addFilterAfter(tokenFilter(tokenProvider, userDetailsService(userRepository)),
                 UsernamePasswordAuthenticationFilter.class);
+    }
+
+    @Bean
+    public TokenFilter tokenFilter(TokenProvider tokenProvider, UserDetailsService userDetailsService) {
+        return new TokenFilter(tokenProvider, userDetailsService);
     }
 
     @Bean
