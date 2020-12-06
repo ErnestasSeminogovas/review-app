@@ -2,7 +2,7 @@ package lt.reviewapp.entities.user;
 
 import lombok.Getter;
 import lombok.Setter;
-import lt.reviewapp.entities.CommonEntity;
+import lt.reviewapp.entities.common.CommonEntity;
 import org.hibernate.annotations.NaturalId;
 import org.springframework.security.core.GrantedAuthority;
 

@@ -2,6 +2,7 @@ package lt.reviewapp.entities;
 
 import lombok.Getter;
 import lombok.Setter;
+import lt.reviewapp.entities.common.CommonAuditorEntity;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "reviews")
-public class Review extends CommonEntity {
+public class Review extends CommonAuditorEntity {
     @Column(nullable = false)
     private String title;
 

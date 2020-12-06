@@ -2,6 +2,7 @@ package lt.reviewapp.entities;
 
 import lombok.Getter;
 import lombok.Setter;
+import lt.reviewapp.entities.common.CommonAuditorEntity;
 
 import javax.persistence.*;
 
@@ -9,7 +10,7 @@ import javax.persistence.*;
 @Setter
 @Entity
 @Table(name = "pictures")
-public class Picture extends CommonEntity {
+public class Picture extends CommonAuditorEntity {
     @Column(nullable = false)
     private String url;
 

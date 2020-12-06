@@ -1,7 +1,7 @@
 package lt.reviewapp.entities.user;
 
 import lombok.*;
-import lt.reviewapp.entities.CommonEntity;
+import lt.reviewapp.entities.common.CommonEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
