@@ -1,13 +1,12 @@
-package lt.reviewapp.entities;
+package lt.reviewapp.entities.user;
 
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
+import lt.reviewapp.entities.CommonEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.util.Collection;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,10 +25,11 @@ public class User extends CommonEntity implements UserDetails {
     @Column(nullable = false, unique = true)
     private String password;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private List<Role> authorities = new ArrayList<>();
 
     @Override
     public boolean isAccountNonExpired() {

@@ -3,6 +3,7 @@ spring:
     url: 'jdbc:postgresql://localhost:5432/review_app_db'
     username: postgres
     password: mduck
+    initialization-mode: always
   jpa:
     hibernate:
       ddl-auto: validate

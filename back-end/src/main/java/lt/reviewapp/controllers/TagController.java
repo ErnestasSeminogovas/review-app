@@ -5,6 +5,7 @@ import lt.reviewapp.models.tag.TagRequest;
 import lt.reviewapp.services.tag.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -32,6 +33,7 @@ public class TagController {
         return ResponseEntity.ok(tagService.findById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Object> create(@RequestBody @Valid TagRequest tagRequest) {
         URI location =
@@ -42,11 +44,13 @@ public class TagController {
         return ResponseEntity.created(location).build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public void updateById(@PathVariable Integer id, @RequestBody @Valid TagRequest tagRequest) {
         tagService.updateById(id, tagRequest);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteById(@PathVariable Integer id) {
         tagService.deleteById(id);

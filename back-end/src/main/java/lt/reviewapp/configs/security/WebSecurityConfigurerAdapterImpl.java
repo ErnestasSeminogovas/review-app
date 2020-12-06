@@ -61,8 +61,7 @@ public class WebSecurityConfigurerAdapterImpl extends WebSecurityConfigurerAdapt
                 .and().authorizeRequests().antMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/tags", "/api/tags/**").permitAll()
                 .anyRequest().authenticated()
-                .and().exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
-                .and().addFilter(tokenFilter(tokenProvider, userDetailsService(userRepository)));
+                .and().exceptionHandling().authenticationEntryPoint(authenticationEntryPoint());
 
         http.addFilterAfter(tokenFilter(tokenProvider, userDetailsService(userRepository)),
                 UsernamePasswordAuthenticationFilter.class);

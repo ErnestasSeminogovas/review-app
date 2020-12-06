@@ -1,9 +1,13 @@
 package lt.reviewapp.services.user;
 
 import lt.reviewapp.configs.controller.exceptions.BadRequestException;
-import lt.reviewapp.entities.User;
+import lt.reviewapp.entities.user.Role;
+import lt.reviewapp.entities.user.RoleName;
+import lt.reviewapp.entities.user.User;
 import lt.reviewapp.models.auth.RegisterRequest;
 import lt.reviewapp.models.user.UserDto;
+import lt.reviewapp.models.user.UserRequest;
+import lt.reviewapp.repositories.RoleRepository;
 import lt.reviewapp.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,19 +22,23 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, ModelMapper modelMapper,
+                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public List<UserDto> findAll() {
-        return userRepository.findAll().stream().map(tag -> modelMapper.map(tag, UserDto.class)).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(tag -> modelMapper.map(tag, UserDto.class))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -43,18 +51,15 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updateById(Integer id, UserDto userDto) {
+    public void updateById(Integer id, UserRequest userRequest) {
         User user = userRepository.findById(id).orElseThrow(() -> createEntityNotFoundException(id));
 
-        boolean usernameOrEmailChanged =
-                !user.getUsername().equals(userDto.getUsername()) || !user.getEmail().equals(userDto.getEmail());
-        if (usernameOrEmailChanged && userRepository.existsByUsernameOrEmail(userDto.getUsername(),
-                userDto.getEmail())) {
-            throw new BadRequestException("User already exists with this username or email.");
+        if (!user.getEmail().equals(userRequest.getEmail()) && userRepository.existsByEmail(
+                userRequest.getEmail())) {
+            throw new BadRequestException("User already exists with this email.");
         }
 
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
+        user.setEmail(userRequest.getEmail());
 
         userRepository.save(user);
     }
@@ -73,11 +78,16 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByUsernameOrEmail(username, email);
     }
 
-    // TODO: add roles here
     @Override
     public Integer create(RegisterRequest registerRequest) {
+        Role role = roleRepository.findByName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "User role was not found by name: " + RoleName.ROLE_USER.name()));
+
         User user =
-                User.builder().username(registerRequest.getUsername()).email(registerRequest.getEmail()).password(passwordEncoder.encode(registerRequest.getPassword())).build();
+                User.builder().username(registerRequest.getUsername()).email(registerRequest.getEmail())
+                        .password(passwordEncoder.encode(registerRequest.getPassword())).authorities(List.of(role))
+                        .build();
 
         return userRepository.save(user).getId();
     }

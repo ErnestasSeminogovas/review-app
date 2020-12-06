@@ -1,7 +1,7 @@
 package lt.reviewapp.services.auth;
 
 import lt.reviewapp.configs.security.TokenProvider;
-import lt.reviewapp.entities.User;
+import lt.reviewapp.entities.user.User;
 import lt.reviewapp.models.auth.LoginRequest;
 import lt.reviewapp.models.auth.LoginResponse;
 import org.springframework.security.authentication.AuthenticationManager;
