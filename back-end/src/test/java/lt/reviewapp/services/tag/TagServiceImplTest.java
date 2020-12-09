@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,9 +36,8 @@ class TagServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        LocalDateTime dateTime = LocalDateTime.now();
-        tag = Tag.builder().id(1).title("warning").createdAt(dateTime).updatedAt(dateTime).build();
-        tagDto = TagDto.builder().id(1).title("warning").createdAt(dateTime).updatedAt(dateTime).build();
+        tag = Tag.builder().id(1).title("warning").build();
+        tagDto = TagDto.builder().id(1).title("warning").build();
         tagRequest = TagRequest.builder().title("error").build();
     }
 
