@@ -1,6 +1,10 @@
 package lt.reviewapp.entities.user;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import lt.reviewapp.entities.common.CommonEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -8,12 +12,12 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
-@Entity
-@Builder
+@Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
+@Entity
 @Table(name = "users")
 public class User extends CommonEntity implements UserDetails {
     @Column(nullable = false, unique = true)

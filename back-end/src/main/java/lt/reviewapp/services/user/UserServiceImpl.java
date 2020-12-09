@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> findAll() {
-        return userRepository.findAll().stream().map(tag -> modelMapper.map(tag, UserDto.class))
+        return userRepository.findAll().stream().map(user -> modelMapper.map(user, UserDto.class))
                 .collect(Collectors.toList());
     }
 
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
                 userRequest.getEmail())) {
             throw new BadRequestException("User already exists with this email.");
         }
-
+        
         user.setEmail(userRequest.getEmail());
 
         userRepository.save(user);

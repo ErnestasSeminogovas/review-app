@@ -1,7 +1,10 @@
 package lt.reviewapp.entities;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import lt.reviewapp.entities.common.CommonAuditorEntity;
 
 import javax.persistence.Column;
@@ -11,8 +14,11 @@ import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 @Entity
 @Table(name = "tags")
 public class Tag extends CommonAuditorEntity {
