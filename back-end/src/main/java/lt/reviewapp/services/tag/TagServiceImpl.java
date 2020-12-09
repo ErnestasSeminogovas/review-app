@@ -5,7 +5,6 @@ import lt.reviewapp.entities.Tag;
 import lt.reviewapp.models.tag.TagDto;
 import lt.reviewapp.models.tag.TagRequest;
 import lt.reviewapp.repositories.TagRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,17 +16,20 @@ import java.util.stream.Collectors;
 @Service
 public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
-    private final ModelMapper modelMapper;
 
     @Autowired
-    public TagServiceImpl(TagRepository tagRepository, ModelMapper modelMapper) {
+    public TagServiceImpl(TagRepository tagRepository) {
         this.tagRepository = tagRepository;
-        this.modelMapper = modelMapper;
     }
 
     @Override
     public List<TagDto> findAll() {
-        return tagRepository.findAll().stream().map(tag -> modelMapper.map(tag, TagDto.class)).collect(Collectors.toList());
+        return tagRepository.findAll().stream().map(this::mapToTagDto).collect(Collectors.toList());
+    }
+
+    private TagDto mapToTagDto(Tag tag) {
+        return TagDto.builder().id(tag.getId()).title(tag.getTitle()).createdAt(tag.getCreatedAt())
+                .updatedAt(tag.getUpdatedAt()).build();
     }
 
     @Override
@@ -35,7 +37,7 @@ public class TagServiceImpl implements TagService {
         Tag tag =
                 tagRepository.findById(id).orElseThrow(() -> createEntityNotFoundException(id));
 
-        return modelMapper.map(tag, TagDto.class);
+        return mapToTagDto(tag);
     }
 
     @Override
@@ -44,7 +46,8 @@ public class TagServiceImpl implements TagService {
             throw new BadRequestException("Tag already exist with title: " + tagRequest.getTitle());
         }
 
-        Tag tag = modelMapper.map(tagRequest, Tag.class);
+        Tag tag = Tag.builder().title(tagRequest.getTitle()).build();
+
         return tagRepository.save(tag).getId();
     }
 
@@ -53,7 +56,8 @@ public class TagServiceImpl implements TagService {
     public void updateById(Integer id, TagRequest tagRequest) {
         Tag tag = tagRepository.findById(id).orElseThrow(() -> createEntityNotFoundException(id));
 
-        if (!tag.getTitle().equalsIgnoreCase(tagRequest.getTitle()) && tagRepository.existsByTitleIgnoreCase(tagRequest.getTitle())) {
+        if (!tag.getTitle().equalsIgnoreCase(tagRequest.getTitle()) &&
+                tagRepository.existsByTitleIgnoreCase(tagRequest.getTitle())) {
             throw new BadRequestException("Tag already exist with title: " + tagRequest.getTitle());
         }
 

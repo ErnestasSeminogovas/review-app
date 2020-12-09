@@ -5,40 +5,47 @@ import lt.reviewapp.entities.Tag;
 import lt.reviewapp.models.tag.TagDto;
 import lt.reviewapp.models.tag.TagRequest;
 import lt.reviewapp.repositories.TagRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 class TagServiceImplTest {
-
     @Mock
     private TagRepository tagRepository;
-    @Mock
-    private ModelMapper modelMapper;
     @InjectMocks
     private TagServiceImpl tagService;
 
+    private Tag tag;
+    private TagDto tagDto;
+    private TagRequest tagRequest;
+
+    @BeforeEach
+    void setUp() {
+        LocalDateTime dateTime = LocalDateTime.now();
+        tag = Tag.builder().id(1).title("warning").createdAt(dateTime).updatedAt(dateTime).build();
+        tagDto = TagDto.builder().id(1).title("warning").createdAt(dateTime).updatedAt(dateTime).build();
+        tagRequest = TagRequest.builder().title("error").build();
+    }
+
     @Test
     void givenTags_whenFindAll_thenReturnTags() {
-        Tag tag = new Tag();
-        TagDto tagDto = new TagDto();
-
         given(tagRepository.findAll()).willReturn(List.of(tag));
-        given(modelMapper.map(tag, TagDto.class)).willReturn(tagDto);
 
         List<TagDto> tags = tagService.findAll();
 
@@ -47,11 +54,7 @@ class TagServiceImplTest {
 
     @Test
     void givenTag_whenFindById_thenReturnTag() {
-        Tag tag = Tag.builder().id(1).build();
-        TagDto tagDto = new TagDto();
-
         given(tagRepository.findById(1)).willReturn(Optional.of(tag));
-        given(modelMapper.map(tag, TagDto.class)).willReturn(tagDto);
 
         TagDto foundTagDto = tagService.findById(1);
 
@@ -67,8 +70,6 @@ class TagServiceImplTest {
 
     @Test
     void givenTagRequestWithExistingTitle_whenCreate_thenThrowBadRequestException() {
-        TagRequest tagRequest = new TagRequest();
-
         given(tagRepository.existsByTitleIgnoreCase(tagRequest.getTitle())).willReturn(true);
 
         assertThrows(BadRequestException.class, () -> tagService.create(tagRequest));
@@ -76,24 +77,16 @@ class TagServiceImplTest {
 
     @Test
     void givenTagRequestWithNotExistingTitle_whenCreate_thenSaveNewUser() {
-        TagRequest tagRequest = new TagRequest();
-        Tag tag = new Tag();
-        Tag savedTag = Tag.builder().id(1).build();
-
         given(tagRepository.existsByTitleIgnoreCase(tagRequest.getTitle())).willReturn(false);
-        given(modelMapper.map(tagRequest, Tag.class)).willReturn(tag);
-        given(tagRepository.save(tag)).willReturn(savedTag);
+        given(tagRepository.save(any())).willReturn(tag);
 
         Integer tagId = tagService.create(tagRequest);
 
-        assertThat(tagId).isEqualTo(savedTag.getId());
+        assertThat(tagId).isEqualTo(tag.getId());
     }
 
     @Test
     void givenTagWithNotExistingTitle_whenUpdateById_thenUpdateTag() {
-        Tag tag = Tag.builder().id(1).title("warning").build();
-        TagRequest tagRequest = new TagRequest("error");
-
         given(tagRepository.findById(1)).willReturn(Optional.of(tag));
         given(tagRepository.existsByTitleIgnoreCase(tagRequest.getTitle())).willReturn(false);
 
@@ -106,16 +99,11 @@ class TagServiceImplTest {
     void givenNoTag_whenUpdateById_thenThrowEntityNotFoundException() {
         given(tagRepository.findById(anyInt())).willReturn(Optional.empty());
 
-        TagRequest tagRequest = new TagRequest();
-
         assertThrows(EntityNotFoundException.class, () -> tagService.updateById(anyInt(), tagRequest));
     }
 
     @Test
     void givenTagWithExistingTitle_whenUpdateById_thenThrowBadRequestException() {
-        Tag tag = Tag.builder().id(1).title("warning").build();
-        TagRequest tagRequest = new TagRequest("error");
-
         given(tagRepository.findById(1)).willReturn(Optional.of(tag));
         given(tagRepository.existsByTitleIgnoreCase(tagRequest.getTitle())).willReturn(true);
 

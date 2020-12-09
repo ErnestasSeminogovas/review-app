@@ -9,7 +9,6 @@ import lt.reviewapp.models.user.UserDto;
 import lt.reviewapp.models.user.UserRequest;
 import lt.reviewapp.repositories.RoleRepository;
 import lt.reviewapp.repositories.UserRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,22 +22,23 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, ModelMapper modelMapper,
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public List<UserDto> findAll() {
-        return userRepository.findAll().stream().map(user -> modelMapper.map(user, UserDto.class))
-                .collect(Collectors.toList());
+        return userRepository.findAll().stream().map(this::mapToUserDto).collect(Collectors.toList());
+    }
+
+    private UserDto mapToUserDto(User user) {
+        return UserDto.builder().username(user.getUsername()).email(user.getEmail()).build();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
         User user =
                 userRepository.findById(id).orElseThrow(() -> createEntityNotFoundException(id));
 
-        return modelMapper.map(user, UserDto.class);
+        return mapToUserDto(user);
     }
 
     @Transactional
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
                 userRequest.getEmail())) {
             throw new BadRequestException("User already exists with this email.");
         }
-        
+
         user.setEmail(userRequest.getEmail());
 
         userRepository.save(user);

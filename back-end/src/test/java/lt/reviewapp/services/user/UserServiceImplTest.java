@@ -9,6 +9,7 @@ import lt.reviewapp.models.user.UserDto;
 import lt.reviewapp.models.user.UserRequest;
 import lt.reviewapp.repositories.RoleRepository;
 import lt.reviewapp.repositories.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,7 +17,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.EntityNotFoundException;
@@ -38,18 +38,21 @@ class UserServiceImplTest {
     private RoleRepository roleRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
-    @Mock
-    private ModelMapper modelMapper;
     @InjectMocks
     private UserServiceImpl userService;
 
+    private User user;
+    private UserDto userDto;
+
+    @BeforeEach
+    void setUp() {
+        user = User.builder().id(1).username("admin").email("admin@gmail.com").build();
+        userDto = UserDto.builder().username("admin").email("admin@gmail.com").build();
+    }
+
     @Test
     void givenUsers_whenFindAll_thenReturnUsers() {
-        User user = new User();
-        UserDto userDto = new UserDto();
-
         given(userRepository.findAll()).willReturn(List.of(user));
-        given(modelMapper.map(user, UserDto.class)).willReturn(userDto);
 
         List<UserDto> users = userService.findAll();
 
@@ -58,11 +61,7 @@ class UserServiceImplTest {
 
     @Test
     void givenUser_whenFindById_thenReturnUser() {
-        User user = new User();
-        UserDto userDto = new UserDto();
-
         given(userRepository.findById(anyInt())).willReturn(Optional.of(user));
-        given(modelMapper.map(user, UserDto.class)).willReturn(userDto);
 
         UserDto foundUserDto = userService.findById(anyInt());
 
@@ -73,13 +72,12 @@ class UserServiceImplTest {
     void givenNoUser_whenFindById_thenThrowEntityNotFoundException() {
         given(userRepository.findById(anyInt())).willReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> userService.findById(1));
+        assertThrows(EntityNotFoundException.class, () -> userService.findById(anyInt()));
     }
 
     @Test
     void givenUserWithNotExistingEmail_whenUpdateById_thenSaveUser() {
-        UserRequest userRequest = new UserRequest("one@gmail.com");
-        User user = User.builder().email("two@gmail.com").build();
+        UserRequest userRequest = new UserRequest("user@gmail.com");
 
         given(userRepository.findById(1)).willReturn(Optional.of(user));
         given(userRepository.existsByEmail(userRequest.getEmail())).willReturn(false);
@@ -91,8 +89,7 @@ class UserServiceImplTest {
 
     @Test
     void givenUserWithExistingEmail_whenUpdateById_thenThrowBadRequestException() {
-        UserRequest userRequest = new UserRequest("one@gmail.com");
-        User user = User.builder().email("two@gmail.com").build();
+        UserRequest userRequest = new UserRequest("user@gmail.com");
 
         given(userRepository.findById(1)).willReturn(Optional.of(user));
         given(userRepository.existsByEmail(userRequest.getEmail())).willReturn(true);
@@ -104,8 +101,7 @@ class UserServiceImplTest {
     void givenNoUser_whenUpdateById_thenEntityNotFoundThrown() {
         given(userRepository.findById(anyInt())).willReturn(Optional.empty());
 
-        UserRequest userRequest = new UserRequest();
-        assertThrows(EntityNotFoundException.class, () -> userService.updateById(1, userRequest));
+        assertThrows(EntityNotFoundException.class, () -> userService.updateById(1, any()));
     }
 
     @Test
@@ -128,7 +124,7 @@ class UserServiceImplTest {
     @ValueSource(booleans = { true, false })
     void givenUserOrNot_whenExistsByUsernameOrEmail_thenReturnCondition(boolean exists) {
         String username = "username";
-        String email = "email@gmail.com";
+        String email = "user@gmail.com";
 
         given(userRepository.existsByUsernameOrEmail(username, email)).willReturn(exists);
 
@@ -141,23 +137,20 @@ class UserServiceImplTest {
     void givenNoUserRole_whenCreate_thenThrowEntityNotFoundException() {
         given(roleRepository.findByName(RoleName.ROLE_USER)).willReturn(Optional.empty());
 
-        RegisterRequest registerRequest = new RegisterRequest();
-        assertThrows(EntityNotFoundException.class, () -> userService.create(registerRequest));
+        assertThrows(EntityNotFoundException.class, () -> userService.create(any()));
     }
 
     @Test
     void givenRegisterRequest_whenCreate_thenSaveNewUser() {
         Role role = new Role(RoleName.ROLE_USER);
-        User createdUser = new User();
-        createdUser.setId(1);
         RegisterRequest registerRequest = RegisterRequest.builder().password("qwerty").build();
 
         given(roleRepository.findByName(RoleName.ROLE_USER)).willReturn(Optional.of(role));
         given(passwordEncoder.encode(registerRequest.getPassword())).willReturn("encoded-qwerty");
-        given(userRepository.save(any())).willReturn(createdUser);
+        given(userRepository.save(any())).willReturn(user);
 
         Integer userId = userService.create(registerRequest);
 
-        assertThat(userId).isEqualTo(createdUser.getId());
+        assertThat(userId).isEqualTo(user.getId());
     }
 }
